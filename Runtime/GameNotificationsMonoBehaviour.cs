@@ -314,15 +314,18 @@ namespace GameLovers.NotificationService
                 if (!doneDefault)
                 {
                     doneDefault = true;
-                    ((AndroidNotificationsPlatform)Platform).DefaultChannelId = notificationChannel.Id;
+                    ((AndroidNotificationsPlatform)_platform).DefaultChannelId = notificationChannel.Id;
                 }
 
                 long[] vibrationPattern = null;
                 if (notificationChannel.VibrationPattern != null)
+                {
                     vibrationPattern = notificationChannel.VibrationPattern.Select(v => (long)v).ToArray();
+                }
 
                 // Wrap channel in Android object
-                var androidChannel = new AndroidNotificationChannel(notificationChannel.Id, notificationChannel.Name,
+                var androidChannel = new AndroidNotificationChannel(
+                    notificationChannel.Id, notificationChannel.Name,
                     notificationChannel.Description,
                     (Importance)notificationChannel.Style)
                 {
