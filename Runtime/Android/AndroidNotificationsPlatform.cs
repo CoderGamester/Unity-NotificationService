@@ -1,5 +1,6 @@
 #if UNITY_ANDROID
 using System;
+using System.Linq;
 using Unity.Notifications.Android;
 
 // ReSharper disable once CheckNamespace
@@ -27,6 +28,31 @@ namespace GameLovers.NotificationService
         public AndroidNotificationsPlatform()
         {
             AndroidNotificationCenter.OnNotificationReceived += OnLocalNotificationReceived;
+        }
+
+        /// <summary>
+        /// Registers the given <seealso cref="AndroidNotificationChannel"/> for the Android
+        /// </summary>
+        public void RegisterChannel(GameNotificationChannel notificationChannel)
+        {
+            long[] vibrationPattern = null;
+            if (notificationChannel.VibrationPattern != null)
+            {
+                vibrationPattern = notificationChannel.VibrationPattern.Select(v => (long)v).ToArray();
+            }
+            
+            var channel = new AndroidNotificationChannel(notificationChannel.Id, notificationChannel.Name,
+                notificationChannel.Description, (Importance)notificationChannel.Style)
+            {
+                CanBypassDnd = notificationChannel.HighPriority,
+                CanShowBadge = notificationChannel.ShowsBadge,
+                EnableLights = notificationChannel.ShowLights,
+                EnableVibration = notificationChannel.Vibrates,
+                LockScreenVisibility = (LockScreenVisibility)notificationChannel.Privacy,
+                VibrationPattern = vibrationPattern
+            };
+
+            AndroidNotificationCenter.RegisterNotificationChannel(channel);
         }
 
         /// <inheritdoc />

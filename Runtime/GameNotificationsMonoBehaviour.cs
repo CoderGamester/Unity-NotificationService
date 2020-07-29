@@ -309,35 +309,17 @@ namespace GameLovers.NotificationService
 
             // Register the notification channels
             var doneDefault = false;
-            foreach (GameNotificationChannel notificationChannel in channels)
+            foreach (var notificationChannel in channels)
             {
+                var platform = _platform as AndroidNotificationsPlatform;
+                
                 if (!doneDefault)
                 {
                     doneDefault = true;
-                    ((AndroidNotificationsPlatform)_platform).DefaultChannelId = notificationChannel.Id;
+                    platform.DefaultChannelId = notificationChannel.Id;
                 }
 
-                long[] vibrationPattern = null;
-                if (notificationChannel.VibrationPattern != null)
-                {
-                    vibrationPattern = notificationChannel.VibrationPattern.Select(v => (long)v).ToArray();
-                }
-
-                // Wrap channel in Android object
-                var androidChannel = new AndroidNotificationChannel(
-                    notificationChannel.Id, notificationChannel.Name,
-                    notificationChannel.Description,
-                    (Importance)notificationChannel.Style)
-                {
-                    CanBypassDnd = notificationChannel.HighPriority,
-                    CanShowBadge = notificationChannel.ShowsBadge,
-                    EnableLights = notificationChannel.ShowLights,
-                    EnableVibration = notificationChannel.Vibrates,
-                    LockScreenVisibility = (LockScreenVisibility)notificationChannel.Privacy,
-                    VibrationPattern = vibrationPattern
-                };
-
-                AndroidNotificationCenter.RegisterNotificationChannel(androidChannel);
+                platform.RegisterChannel(notificationChannel);
             }
 #elif UNITY_IOS
             _platform = new iOSNotificationsPlatform();
