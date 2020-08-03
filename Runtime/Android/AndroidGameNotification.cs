@@ -42,7 +42,7 @@ namespace GameLovers.NotificationService
         /// <see cref="AndroidNotificationsPlatform"/> if <see cref="AndroidNotificationsPlatform.DefaultChannelId"/> is set
         /// </remarks>
         /// <value>The value of <see cref="DeliveredChannel"/>.</value>
-        public string Group { get => DeliveredChannel; set => DeliveredChannel = value; }
+        public string Channel { get => DeliveredChannel; set => DeliveredChannel = value; }
 
         /// <inheritdoc />
         public int? BadgeNumber
