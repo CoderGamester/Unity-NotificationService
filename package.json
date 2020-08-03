@@ -1,7 +1,7 @@
 {
   "name": "com.gamelovers.notificationservice",
   "displayName": "Notification Service",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "unity": "2019.4",
   "description": "This package provides an easier to use service to help manage the notification sent to mobile devices, and based on the Unity's Mobile Notifications package.\nIt allows to schedule local notifications, receive remote notifications and clear any type of notification.",
   "dependencies": {

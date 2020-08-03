@@ -14,14 +14,14 @@ namespace GameLovers.NotificationService
 		/// <summary>
 		/// Event fired when a scheduled local notification is delivered while the app is in the foreground.
 		/// </summary>
-		event Action<PendingNotification> LocalNotificationDelivered;
+		event Action<PendingNotification> OnLocalNotificationDeliveredEvent;
 
 		/// <summary>
 		/// Event fired when a queued local notification is cancelled because the application is in the foreground
 		/// when it was meant to be displayed.
 		/// </summary>
 		/// <seealso cref="OperatingMode.Queue"/>
-		event Action<PendingNotification> LocalNotificationExpired;
+		event Action<PendingNotification> OnLocalNotificationExpiredEvent;
 
 		/// <summary>
 		/// Gets a collection of notifications that are scheduled or queued.
@@ -71,9 +71,9 @@ namespace GameLovers.NotificationService
 		private readonly GameNotificationsMonoBehaviour _monoBehaviour;
 
 		/// <inheritdoc />
-		public event Action<PendingNotification> LocalNotificationDelivered;
+		public event Action<PendingNotification> OnLocalNotificationDeliveredEvent;
 		/// <inheritdoc />
-		public event Action<PendingNotification> LocalNotificationExpired;
+		public event Action<PendingNotification> OnLocalNotificationExpiredEvent;
 
 		/// <inheritdoc />
 		public IReadOnlyList<PendingNotification> PendingNotifications => _monoBehaviour.PendingNotifications;
@@ -81,8 +81,8 @@ namespace GameLovers.NotificationService
 		public MobileNotificationService(params GameNotificationChannel[] channels)
 		{
 			_monoBehaviour = new GameObject("NotificationService").AddComponent<GameNotificationsMonoBehaviour>();
-			_monoBehaviour.LocalNotificationDelivered = LocalNotificationDelivered;
-			_monoBehaviour.LocalNotificationExpired = LocalNotificationExpired;
+			_monoBehaviour.OnLocalNotificationDelivered = OnLocalNotificationDeliveredEvent;
+			_monoBehaviour.OnLocalNotificationExpired = OnLocalNotificationExpiredEvent;
 
 			_monoBehaviour.Initialize(channels);
 			UnityEngine.Object.DontDestroyOnLoad(_monoBehaviour);

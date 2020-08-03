@@ -41,10 +41,10 @@ namespace GameLovers.NotificationService
         string Subtitle { get; set; }
 
         /// <summary>
-        /// Gets or sets group to which this notification belongs.
+        /// Gets or sets channel to which this notification belongs.
         /// </summary>
-        /// <value>A platform specific string identifier for the notification's group.</value>
-        string Group { get; set; }
+        /// <value>A platform specific string identifier for the notification's channel.</value>
+        string Channel { get; set; }
 
         /// <summary>
         /// Gets or sets the badge number for this notification. No badge number will be shown if null.
