@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using UnityEngine;
 
@@ -67,9 +66,8 @@ namespace GameLovers.NotificationService
     /// </summary>
     public sealed class GameNotificationsMonoBehaviour : MonoBehaviour
     {
-        // Default filename for notifications serializer
-        private const string _DEFAULT_FILENAME = "notifications.bin";
-
+        
+        
         // Minimum amount of time that a notification should be into the future before it's queued when we background.
         private static readonly TimeSpan _minimumNotificationTime = new TimeSpan(0, 0, 2);
 
@@ -87,23 +85,22 @@ namespace GameLovers.NotificationService
         /// <summary>
         /// Event fired when a scheduled local notification is delivered while the app is in the foreground.
         /// </summary>
-        public Action<PendingNotification> LocalNotificationDelivered;
+        public Action<PendingNotification> OnLocalNotificationDelivered;
 
         /// <summary>
         /// Event fired when a queued local notification is cancelled because the application is in the foreground
         /// when it was meant to be displayed.
         /// </summary>
         /// <seealso cref="OperatingMode.Queue"/>
-        public Action<PendingNotification> LocalNotificationExpired;
+        public Action<PendingNotification> OnLocalNotificationExpired;
 
         private IGameNotificationsPlatform _platform;
-        private IPendingNotificationsSerializer _serializer;
         private bool _inForeground = true;
 
         /// <summary>
         /// Gets a collection of notifications that are scheduled or queued.
         /// </summary>
-        public List<PendingNotification> PendingNotifications { get; private set; }
+        public List<PendingNotification> PendingNotifications { get; private set; } = new List<PendingNotification>();
 
         /// <summary>
         /// Gets whether this manager has been initialized.
@@ -147,7 +144,7 @@ namespace GameLovers.NotificationService
                 if (time != null && time < DateTime.Now)
                 {
                     PendingNotifications.RemoveAt(i);
-                    LocalNotificationExpired?.Invoke(queuedNotification);
+                    OnLocalNotificationExpired?.Invoke(queuedNotification);
                 }
             }
         }
@@ -255,7 +252,7 @@ namespace GameLovers.NotificationService
             }
 
             // Calculate notifications to save
-            var notificationsToSave = new List<PendingNotification>(PendingNotifications.Count);
+            var notificationsToSave = new List<SerializableNotification>(PendingNotifications.Count);
             foreach (var pendingNotification in PendingNotifications)
             {
                 // If we're in clear mode, add nothing unless we're in rescheduling mode
@@ -273,7 +270,7 @@ namespace GameLovers.NotificationService
                         pendingNotification.Notification.Scheduled &&
                         pendingNotification.Notification.DeliveryTime.HasValue)
                     {
-                        notificationsToSave.Add(pendingNotification);
+                        notificationsToSave.Add(pendingNotification.AsSerializableNotification());
                     }
                 }
                 else
@@ -281,13 +278,13 @@ namespace GameLovers.NotificationService
                     // In non-clear mode, just add all scheduled notifications
                     if (pendingNotification.Notification.Scheduled)
                     {
-                        notificationsToSave.Add(pendingNotification);
+                        notificationsToSave.Add(pendingNotification.AsSerializableNotification());
                     }
                 }
             }
 
             // Save to disk
-            _serializer.Serialize(notificationsToSave);
+            PlayerPrefs.SetString("notifications", JsonUtility.ToJson(notificationsToSave));
         }
 
         /// <summary>
@@ -330,14 +327,7 @@ namespace GameLovers.NotificationService
                 return;
             }
 
-            PendingNotifications = new List<PendingNotification>();
             _platform.NotificationReceived += OnNotificationReceived;
-
-            // Check serializer
-            if (_serializer == null)
-            {
-                _serializer = new DefaultSerializer(Path.Combine(Application.persistentDataPath, _DEFAULT_FILENAME));
-            }
 
             OnForegrounding();
         }
@@ -488,7 +478,7 @@ namespace GameLovers.NotificationService
             
             if (deliveredIndex >= 0)
             {
-                LocalNotificationDelivered?.Invoke(PendingNotifications[deliveredIndex]);
+                OnLocalNotificationDelivered?.Invoke(PendingNotifications[deliveredIndex]);
                 PendingNotifications.RemoveAt(deliveredIndex);
             }
         }
@@ -500,7 +490,7 @@ namespace GameLovers.NotificationService
             _platform.OnForeground();
 
             // Deserialize saved items
-            var loaded = _serializer?.Deserialize(_platform);
+            var notifications = JsonUtility.FromJson<List<SerializableNotification>>(PlayerPrefs.GetString("notifications"));
 
             // Foregrounding
             if ((Mode & OperatingMode.ClearOnForegrounding) == OperatingMode.ClearOnForegrounding)
@@ -509,17 +499,18 @@ namespace GameLovers.NotificationService
                 _platform.CancelAllScheduledNotifications();
 
                 // Only reschedule in reschedule mode, and if we loaded any items
-                if (loaded == null || (Mode & OperatingMode.RescheduleAfterClearing) != OperatingMode.RescheduleAfterClearing)
+                if (notifications == null || (Mode & OperatingMode.RescheduleAfterClearing) != OperatingMode.RescheduleAfterClearing)
                 {
                     return;
                 }
 
                 // Reschedule notifications from deserialization
-                foreach (var savedNotification in loaded)
+                foreach (var savedNotification in notifications)
                 {
                     if (savedNotification.DeliveryTime > DateTime.Now)
                     {
-                        var pendingNotification = ScheduleNotification(savedNotification);
+                        var pendingNotification = ScheduleNotification(savedNotification.AsGameNotification(_platform));
+                        
                         pendingNotification.Reschedule = true;
                     }
                 }
@@ -528,16 +519,16 @@ namespace GameLovers.NotificationService
             {
                 // Just create PendingNotification wrappers for all deserialized items.
                 // We're not rescheduling them because they were not cleared
-                if (loaded == null)
+                if (notifications == null)
                 {
                     return;
                 }
 
-                foreach (var savedNotification in loaded)
+                foreach (var savedNotification in notifications)
                 {
                     if (savedNotification.DeliveryTime > DateTime.Now)
                     {
-                        PendingNotifications.Add(new PendingNotification(savedNotification));
+                        PendingNotifications.Add(new PendingNotification(savedNotification.AsGameNotification(_platform)));
                     }
                 }
             }

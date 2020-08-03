@@ -62,7 +62,7 @@ namespace GameLovers.NotificationService
         /// On iOS, this represents the notification's Category Identifier.
         /// </remarks>
         /// <value>The value of <see cref="CategoryIdentifier"/>.</value>
-        public string Group { get => CategoryIdentifier; set => CategoryIdentifier = value; }
+        public string Channel { get => CategoryIdentifier; set => CategoryIdentifier = value; }
 
         /// <inheritdoc />
         public int? BadgeNumber
