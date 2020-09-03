@@ -100,6 +100,14 @@ namespace GameLovers.NotificationService
 		/// <inheritdoc />
 		public PendingNotification ScheduleNotification(IGameNotification gameNotification)
 		{
+#if UNITY_EDITOR
+			if (!gameNotification.Id.HasValue)
+            {
+                // Generate an ID for items that don't have one (just so they can be identified later)
+                gameNotification.Id = Math.Abs(DateTime.Now.ToString("yyMMddHHmmssffffff").GetHashCode());
+            }
+			return new PendingNotification(gameNotification);
+#endif
 			return _monoBehaviour.ScheduleNotification(gameNotification);
 		}
 
