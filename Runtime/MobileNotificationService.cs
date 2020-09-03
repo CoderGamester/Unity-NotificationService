@@ -91,6 +91,9 @@ namespace GameLovers.NotificationService
 		/// <inheritdoc />
 		public IGameNotification CreateNotification()
 		{
+#if UNITY_EDITOR
+			return new EditorGameNotification();
+#endif
 			return _monoBehaviour.CreateNotification();
 		}
 
