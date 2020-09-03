@@ -358,7 +358,7 @@ namespace GameLovers.NotificationService
                 throw new InvalidOperationException("Must call Initialize() first.");
             }
 
-            if (notification == null || _platform == null)
+            if (notification == null)
             {
                 return null;
             }
@@ -367,7 +367,7 @@ namespace GameLovers.NotificationService
             // Also immediately schedule non-time based deliveries (for iOS)
             if ((Mode & OperatingMode.Queue) != OperatingMode.Queue || notification.DeliveryTime == null)
             {
-                _platform.ScheduleNotification(notification);
+                _platform?.ScheduleNotification(notification);
             }
             else if (!notification.Id.HasValue)
             {
