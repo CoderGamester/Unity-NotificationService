@@ -93,8 +93,9 @@ namespace GameLovers.NotificationService
 		{
 #if UNITY_EDITOR
 			return new EditorGameNotification();
-#endif
+#else
 			return _monoBehaviour.CreateNotification();
+#endif
 		}
 
 		/// <inheritdoc />
@@ -107,8 +108,9 @@ namespace GameLovers.NotificationService
                 gameNotification.Id = Math.Abs(DateTime.Now.ToString("yyMMddHHmmssffffff").GetHashCode());
             }
 			return new PendingNotification(gameNotification);
-#endif
+#else
 			return _monoBehaviour.ScheduleNotification(gameNotification);
+#endif
 		}
 
 		/// <inheritdoc />
